@@ -6,4 +6,4 @@ Em gửi các link trong đây và file backup nến anh không xem link đượ
 
 - Mockup: https://app.visily.ai/projects/32025112-2274-4432-b7bf-a23186eaf7ad/boards/850630
 
-- Slide: https://1drv.ms/p/s!AjOxNxWmfAU-m9YYCnGwPT7bIXWh8g
+- Slide: [https://1drv.ms/p/s!AjOxNxWmfAU-m9YYCnGwPT7bIXWh8g](https://1drv.ms/p/s!AjOxNxWmfAU-m9YYQGlzpBAx6lc1Jw?e=F4gQdB)
