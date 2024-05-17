@@ -1,0 +1,87 @@
+//// Dimension Tables
+Table DIM_CUSTOMERS {
+  CustomerKey int [pk]
+  CustomerName varchar
+  CustomerEmail varchar
+  CustomerPhone varchar
+  CustomerAddress varchar
+  CustomerCity varchar
+  CustomerState varchar
+  CustomerCountry varchar
+  CustomerZipCode varchar
+}
+
+Table DIM_PRODUCTS {
+  ProductKey int [pk]
+  ProductName varchar
+  ProductDescription varchar
+  ProductCategory varchar
+  ProductSubcategory varchar
+  ProductBrand varchar
+  ProductColor varchar
+  ProductSize varchar
+  ProductPrice decimal
+}
+
+Table DIM_TIME {
+  TimeKey int [pk]
+  FullDate date
+  YearNumber int
+  MonthNumber int
+  DayNumberOfWeek int
+  DayNumberOfMonth int
+  DayNumberOfYear int
+  WeekNumberOfYear int
+  MonthName varchar
+  QuarterNumber int
+}
+
+Table DIM_LOCATION {
+  LocationKey int [pk]
+  CountryName varchar
+  StateName varchar
+  CityName varchar
+  ZipCode varchar
+}
+
+Table DIM_PROMOTION {
+  PromotionKey int [pk]
+  PromotionName varchar
+  PromotionType varchar
+  PromotionStartDate date
+  PromotionEndDate date
+  PromotionDiscount decimal
+}
+
+Table DIM_REVIEWS {
+  ReviewKey int [pk]
+  ReviewRating int
+  ReviewComment varchar
+  CustomerKey int [ref: > DIM_CUSTOMERS.CustomerKey]
+  ProductKey int [ref: > DIM_PRODUCTS.ProductKey]
+  ReviewDate date
+}
+
+Table DIM_ANALYTICS {
+  AnalyticsKey int [pk]
+  ProductKey int [ref: > DIM_PRODUCTS.ProductKey]
+  ViewCount int
+  PurchaseCount int
+  AverageRating decimal
+  SearchTerms varchar
+  ConversionRate decimal
+}
+
+//// Fact Table
+Table FACT_ORDERS {
+  OrderKey int [pk]
+  CustomerKey int [ref: > DIM_CUSTOMERS.CustomerKey]
+  ProductKey int [ref: > DIM_PRODUCTS.ProductKey]
+  TimeKey int [ref: > DIM_TIME.TimeKey]
+  LocationKey int [ref: > DIM_LOCATION.LocationKey]
+  PromotionKey int [ref: > DIM_PROMOTION.PromotionKey]
+  OrderQuantity int
+  OrderAmount decimal
+  OrderDiscount decimal
+  OrderProfit decimal
+}
