@@ -144,6 +144,5 @@ group by s.customer_id
 )
 select customer_id, point
 from points
-where customer_id in ('A', 'B')
 order by customer_id asc;
 ```
