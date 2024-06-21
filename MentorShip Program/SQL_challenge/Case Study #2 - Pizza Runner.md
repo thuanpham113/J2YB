@@ -191,24 +191,315 @@ GROUP BY runner_id;
 
 # C. Ingredient Optimisation
 
-1. What are the standard ingredients for each pizza?
 
-2. What was the most commonly added extra?
-3. What was the most common exclusion?
-4. Generate an order item for each record in the customers_orders table in the format of one of the following:
-   Meat Lovers
-   Meat Lovers - Exclude Beef
-   Meat Lovers - Extra Bacon
-   Meat Lovers - Exclude Cheese, Bacon - Extra Mushroom, Peppers
-5. Generate an alphabetically ordered comma separated ingredient list for each pizza order from the customer_orders table and add a 2x in front of any relevant ingredients
-   For example: "Meat Lovers: 2xBacon, Beef, ... , Salami"
-6. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?
+1. What are the standard ingredients for each pizza ?
+
+```
+WITH
+    pizza_toppings_cte AS (
+        SELECT pizza_id, to_number(
+                REGEXP_SPLIT_TO_TABLE(toppings, '[,\s]+'), 'S9999D99'
+            ) AS topping_id
+        FROM pizza_recipes
+    )
+SELECT pn.pizza_name, pt.topping_name
+FROM
+    pizza_toppings_cte ptc
+    JOIN pizza_names pn ON ptc.pizza_id = pn.pizza_id
+    JOIN pizza_toppings pt ON ptc.topping_id = pt.topping_id;
+```
+
+2. What was the most commonly added extra ?
+
+```
+WITH
+    toppings_cte AS (
+        SELECT pizza_id, to_number(
+                REGEXP_SPLIT_TO_TABLE(toppings, '[,\s]+'), 'S9999D99'
+            ) AS topping_id
+        FROM pizza_recipes
+    )
+SELECT t.topping_id, pt.topping_name, COUNT(t.topping_id) AS topping_count
+FROM
+    toppings_cte t
+    INNER JOIN pizza_toppings pt ON t.topping_id = pt.topping_id
+GROUP BY
+    t.topping_id,
+    pt.topping_name
+ORDER BY topping_count DESC;
+```
+
+3. What was the most common exclusion ?
+
+```
+WITH
+    customer_orders_cte AS (
+        SELECT order_id, to_number(
+                REGEXP_SPLIT_TO_TABLE(exclusions, '[,\s]+'), 'S9999D99'
+            ) AS exclusion
+        FROM customer_orders
+        WHERE
+            exclusions != ' '
+    ),
+    pizza_toppings_cte AS (
+        SELECT pt.topping_name, count(pt.topping_name) as topping_count, dense_rank() OVER (
+                ORDER BY count(pt.topping_name) DESC
+            ) as ranking
+        FROM
+            customer_orders_cte coc
+            JOIN pizza_toppings pt ON coc.exclusion = pt.topping_id
+        GROUP BY
+            pt.topping_name
+    )
+SELECT topping_name, topping_count
+FROM pizza_toppings_cte
+WHERE
+    ranking = 1;
+```
+
+4. Generate an order item for each record in the customers\_orders table in the format of one of the following:Meat Lovers Meat Lovers - Exclude Beef Meat Lovers - Extra Bacon Meat Lovers - Exclude Cheese, Bacon - Extra Mushroom, Peppers
+
+```
+WITH
+    customer_orders_cte AS (
+        SELECT
+            order_id,
+            customer_id,
+            pizza_id,
+            CASE
+                WHEN exclusions = 'null' THEN NULL
+                ELSE (
+                    SELECT string_agg(pt.topping_name, ', ')
+                    FROM unnest(
+                            string_to_array(exclusions, ',')
+                        ) num
+                        JOIN pizza_toppings pt ON to_number(num, '999D99') = pt.topping_id
+                    WHERE
+                        pt.topping_id IS NOT NULL
+                )
+            END AS exclusions_array,
+            CASE
+                WHEN extras = 'null' THEN NULL
+                ELSE (
+                    SELECT string_agg(pt.topping_name, ', ')
+                    FROM unnest(string_to_array(extras, ',')) num
+                        JOIN pizza_toppings pt ON to_number(num, '999D99') = pt.topping_id
+                    WHERE
+                        pt.topping_id IS NOT NULL
+                )
+            END AS extras_array,
+            order_time
+        FROM customer_orders
+        GROUP BY
+            order_id,
+            customer_id,
+            pizza_id,
+            exclusions,
+            extras,
+            order_time
+    )
+SELECT
+    coc.order_id,
+    coc.customer_id,
+    coc.pizza_id,
+    CASE
+        WHEN pn.pizza_name = 'Meatlovers' THEN 'Meat Lovers'
+        ELSE 'Vegetarian'
+    END || CASE
+        WHEN coc.exclusions_array ISNULL THEN ''
+        ELSE (
+            ' - Exclude ' || coc.exclusions_array || ' '
+        )
+    END || CASE
+        WHEN coc.exclusions_array ISNULL THEN ''
+        ELSE (
+            ' - Extra ' || coc.exclusions_array || ' '
+        )
+    END AS order_item,
+    order_time
+FROM
+    customer_orders_cte coc
+    JOIN pizza_names pn ON coc.pizza_id = pn.pizza_id;
+```
+
+5. Generate an alphabetically ordered comma separated ingredient list for each pizza order from the customer\_orders table and add a 2x in front of any relevant ingredients For example: "Meat Lovers: 2xBacon, Beef, ... , Salami"
+
+```
+SELECT co.order_id,
+CASE
+    WHEN pn.pizza_name = 'Meatlovers' THEN 'Meat Lovers'
+    ELSE 'Vegetarian'
+END  || ': ' || (
+        SELECT string_agg(ingredient_list, ', ') as ingredient_list
+        FROM (
+                SELECT
+                    CASE
+                        WHEN count(pt.topping_name) > 1 THEN '2x ' || pt.topping_name
+                        ELSE pt.topping_name
+                    END AS ingredient_list,
+                    count(pt.topping_name) as topping_count
+                FROM (
+                        SELECT to_number(num, '999D99') as topping_id
+                        FROM unnest(
+                                string_to_array(
+                                    case
+                                        when co.extras ISNULL then ''
+                                        else (co.extras || ', ')
+                                    end || pr.toppings, ', '
+                                )
+                            ) num
+                        WHERE num NOT IN (
+                                SELECT num as topping_id
+                                FROM unnest(
+                                        string_to_array(
+                                            case
+                                                when co.exclusions ISNULL then ''
+                                                else (co.exclusions || ', ')
+                                            end, ', '
+                                        )
+                                    ) num
+                            )
+                    ) AS subquery
+                    JOIN pizza_toppings pt ON subquery.topping_id = pt.topping_id
+                GROUP BY
+                    pt.topping_name
+                ORDER BY
+                    topping_count DESC
+            ) AS subquery
+    ) as ingredient_list
+FROM
+    customer_orders co
+    LEFT JOIN pizza_recipes pr ON co.pizza_id = pr.pizza_id
+    LEFT JOIN pizza_names pn ON co.pizza_id = pn.pizza_id
+ORDER BY
+    co.order_id;
+```
+
+7. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?
+
+**method 1**
+
+```
+
+SELECT
+    pt.topping_name,
+    sum(
+        CASE
+            WHEN (
+                SELECT count(pt2.topping_name)
+                FROM (
+                        SELECT to_number(num, '999D99') as topping_id
+                        FROM unnest(
+                                string_to_array(
+                                    case
+                                        when co.extras ISNULL then ''
+                                        else (co.extras || ', ')
+                                    end || pr.toppings, ', '
+                                )
+                            ) num
+                        WHERE num NOT IN (
+                                SELECT num as topping_id
+                                FROM unnest(
+                                        string_to_array(
+                                            case
+                                                when co.exclusions ISNULL then ''
+                                                else (co.exclusions || ', ')
+                                            end, ', '
+                                        )
+                                    ) num
+                            )
+                    ) AS subquery
+                    JOIN pizza_toppings pt2 ON subquery.topping_id = pt.topping_id
+                WHERE
+                    pt.topping_name = pt2.topping_name
+            ) > 1 THEN 2
+            ELSE 1
+        END
+    ) as total_quantity
+FROM customer_orders co
+    LEFT JOIN pizza_recipes pr ON co.pizza_id = pr.pizza_id
+    LEFT JOIN pizza_names pn ON co.pizza_id = pn.pizza_id
+    LEFT JOIN pizza_toppings pt ON pt.topping_id in (
+        SELECT to_number(num, '999D99') as topping_id
+        FROM unnest(
+                string_to_array(
+                    case
+                        when co.extras ISNULL then ''
+                        else (co.extras || ', ')
+                    end || pr.toppings, ', '
+                )
+            ) num
+        WHERE num NOT IN (
+                SELECT num as topping_id
+                FROM unnest(
+                        string_to_array(
+                            case
+                                when co.exclusions ISNULL then ''
+                                else (co.exclusions || ', ')
+                            end, ', '
+                        )
+                    ) num
+            )
+    )
+GROUP BY
+    pt.topping_name
+;
+```
+
+**method 2**
+
+```
+WITH pizza_toppings_cte AS (
+SELECT co.order_id,
+string_to_table((
+        SELECT string_agg(ingredient_list, ', ') as ingredient_list
+        FROM (
+                SELECT pt.topping_name as ingredient_list
+                FROM (
+                        SELECT to_number(num, '999D99') as topping_id
+                        FROM unnest(
+                                string_to_array(
+                                    case
+                                        when co.extras ISNULL then ''
+                                        else (co.extras || ', ')
+                                    end || pr.toppings, ', '
+                                )
+                            ) num
+                        WHERE num NOT IN (
+                                SELECT num as topping_id
+                                FROM unnest(
+                                        string_to_array(
+                                            case
+                                                when co.exclusions ISNULL then ''
+                                                else (co.exclusions || ', ')
+                                            end, ', '
+                                        )
+                                    ) num
+                            )
+                    ) AS subquery
+                    JOIN pizza_toppings pt ON subquery.topping_id = pt.topping_id
+            ) AS subquery
+    ), ', ') as ingredient_list
+FROM
+    customer_orders co
+    LEFT JOIN pizza_recipes pr ON co.pizza_id = pr.pizza_id
+    LEFT JOIN pizza_names pn ON co.pizza_id = pn.pizza_id
+ORDER BY
+    co.order_id
+)
+SELECT
+    ingredient_list,
+    count(ingredient_list) as total_quantity
+FROM pizza_toppings_cte
+GROUP BY ingredient_list
+ORDER BY total_quantity DESC;
+```
 
 # D. Pricing and Ratings
 
-1.  If a Meat Lovers pizza costs $12 and Vegetarian costs $10 and there were no charges for changes - how much money has Pizza Runner made so far if there are no delivery fees?
+1. If a Meat Lovers pizza costs $12 and Vegetarian costs $10 and there were no charges for changes - how much money has Pizza Runner made so far if there are no delivery fees?
 2. What if there pg_wal_lsn_diff an additional $1 charge for any pizza extras?
-    Add cheese is $1 extra
+   Add cheese is $1 extra
 3. The Pizza Runner team now wants to add an additional ratings system that allows customers to rate their runner, how would you design an additional table for this new dataset - generate a schema for this new table and insert your own data for ratings for each successful customer order between 1 to 5.
 4. Using your newly generated table - can you join all of the information together to form a table which has the following information for successful deliveries?
    customer_id
@@ -226,4 +517,3 @@ GROUP BY runner_id;
 # E. Bonus Questions
 
 1. If Danny wants to expand his range of pizzas - how would this impact the existing data design? Write an INSERT statement to demonstrate what would happen if a new Supreme pizza with all the toppings was added to the Pizza Runner menu?
-
