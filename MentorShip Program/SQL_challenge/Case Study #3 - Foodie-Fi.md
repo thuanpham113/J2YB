@@ -1,8 +1,10 @@
 # A. Customer Journey
+
 Based off the 8 sample customers provided in the sample from the subscriptions table, write a brief description about each customer’s onboarding journey.
 
 Try to keep it as short as possible - you may also want to run some sort of join to make your explanations a bit easier!
 
+```
 SELECT s.customer_id,
 string_agg(p.plan_name, ' -> ') AS plan_names,
 string_agg(to_char(s.start_date, 'dd/mm/yyyy'), ' -> ') AS start_dates
@@ -10,14 +12,20 @@ FROM subscriptions s
 JOIN plans p ON s.plan_id = p.plan_id
 GROUP BY s.customer_id
 ORDER BY s.customer_id;
+```
+
 
 # B. Data Analysis Questions
+
 1. How many customers has Foodie-Fi ever had?
+
 ```
 SELECT COUNT(DISTINCT customer_id) AS customer_count
 FROM subscriptions;
 ```
+
 2. What is the monthly distribution of trial plan start_date values for our dataset - use the start of the month as the group by value
+
 ```
 SELECT DATE_TRUNC('month', start_date) AS month_start,
 COUNT(*) AS trial_start_count
@@ -26,7 +34,9 @@ WHERE plan_id = 0
 GROUP BY month_start
 ORDER BY month_start;
 ```
+
 3. What plan start_date values occur after the year 2020 for our dataset? Show the breakdown by count of events for each plan_name
+
 ```
 SELECT p.plan_name,
 COUNT(*) AS plan_count
@@ -35,14 +45,18 @@ JOIN plans p ON s.plan_id = p.plan_id
 WHERE start_date > '2020-12-31'
 GROUP BY p.plan_name;
 ```
+
 4. What is the customer count and percentage of customers who have churned rounded to 1 decimal place?
+
 ```
 SELECT COUNT(DISTINCT customer_id) AS churned_customer_count,
 ROUND(COUNT(DISTINCT customer_id) * 100.0 / (SELECT COUNT(DISTINCT customer_id) FROM subscriptions), 1) AS churned_customer_percentage
 FROM subscriptions
 WHERE plan_id = 4;
 ```
+
 5. How many customers have churned straight after their initial free trial - what percentage is this rounded to the nearest whole number?
+
 ```
 WITH churned_customers AS (
 SELECT customer_id,
@@ -56,7 +70,9 @@ ROUND(count(*) * 100.0 / (SELECT COUNT(DISTINCT customer_id) FROM subscriptions)
 FROM churned_customers
 WHERE plan_names[1] = 0 AND plan_names[2] = 4;
 ```
+
 6. What is the number and percentage of customer plans after their initial free trial?
+
 ```
 WITH churned_customers AS (
 SELECT customer_id,
@@ -72,7 +88,9 @@ FROM churned_customers
 GROUP BY plan_names[2]
 ORDER BY plan_id;
 ```
+
 7. What is the customer count and percentage breakdown of all 5 plan_name values at 2020-12-31?
+
 ```
 WITH sort_sub AS (
 SELECT *
@@ -98,14 +116,18 @@ FROM plans p
 LEFT JOIN final_plan_count f ON p.plan_id = f.plan_id
 ORDER BY p.plan_id;
 ```
+
 8. How many customers have upgraded to an annual plan in 2020?
+
 ```
 SELECT COUNT(DISTINCT customer_id) AS num_of_customers
 FROM foodie_fi.subscriptions
 WHERE plan_id = 3
 AND start_date <= '2020-12-31';
 ```
+
 9. How many days on average does it take for a customer to an annual plan from the day they join Foodie-Fi?
+
 ```
 WITH plan_customers AS (
 SELECT customer_id,
@@ -125,7 +147,9 @@ WHERE array_position(plan_ids, 3) IS NOT NULL
 SELECT ROUND(AVG(annual_date - first_date)) AS average_conversion_days
 FROM annual_customers;
 ```
+
 10. Can you further breakdown this average value into 30 day periods (i.e. 0-30 days, 31-60 days etc)
+
 ```
 WITH plan_customers AS (
 SELECT customer_id,
@@ -157,7 +181,9 @@ customer_count
 FROM conversion_groups
 ORDER BY group_weeks;
 ```
+
 11. How many customers downgraded from a pro monthly to a basic monthly plan in 2020?
+
 ```
 WITH plan_customers AS (
 SELECT customer_id,
@@ -180,7 +206,9 @@ SELECT COUNT(DISTINCT customer_id) AS downgrade_count
 FROM downgrade_customers
 WHERE basic_index < pro_index;
 ```
+
 # C. Challenge Payment Question
+
 The Foodie-Fi team wants you to create a new payments table for the year 2020 that includes amounts paid by each customer in the subscriptions table with the following requirements:
 
 monthly payments always occur on the same day of month as the original start_date of any monthly paid plan
@@ -204,3 +232,4 @@ The following are open ended questions which might be asked during a technical i
 3. What are some key customer journeys or experiences that you would analyse further to improve customer retention?
 4. If the Foodie-Fi team were to create an exit survey shown to customers who wish to cancel their subscription, what questions would you include in the survey?
 5. What business levers could the Foodie-Fi team use to reduce the customer churn rate? How would you validate the effectiveness of your ideas?
+
