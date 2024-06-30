@@ -1,25 +1,25 @@
-A. Customer Nodes Exploration
+# A. Customer Nodes Exploration
 
 1. How many unique nodes are there on the Data Bank system?
-
+```
 SELECT COUNT(DISTINCT node_id) FROM customer_nodes;
-
+```
 2. What is the number of nodes per region?
-
+```
 SELECT r.region_name, COUNT(DISTINCT cn.node_id)
 FROM customer_nodes cn
 JOIN regions r ON r.region_id = cn.region_id
 GROUP BY r.region_name;
-
+```
 3. How many customers are allocated to each region?
-
+```
 SELECT r.region_name, COUNT(DISTINCT cn.customer_id)
 FROM customer_nodes cn
 JOIN regions r ON r.region_id = cn.region_id
 GROUP BY r.region_name;
-
+```
 4. How many days on average are customers reallocated to a different node?
-
+```
 WITH reallocation_days AS (
 SELECT customer_id,
 node_id,
@@ -35,9 +35,9 @@ GROUP BY customer_id, node_id
 )
 SELECT round(AVG(total_days)) AS avg_reallocation_days
 FROM total_node_days;
-
+```
 5. What is the median, 80th and 95th percentile for this same reallocation days metric for each region?
-
+```
 WITH reallocation_days AS (
 SELECT customer_id,
 node_id,
@@ -63,19 +63,19 @@ PERCENTILE_CONT(0.8) WITHIN GROUP (ORDER BY total_days) AS percentile_80,
 PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY total_days) AS percentile_95
 FROM region_reallocation_days
 GROUP BY region_name;
-
-B. Customer Transactions
+```
+# B. Customer Transactions
 
 1. What is the unique count and total amount for each transaction type?
-
+```
 SELECT txn_type,
 COUNT(customer_id) AS unique_count,
 SUM(txn_amount) AS total_amount
 FROM customer_transactions
 GROUP BY txn_type;
-
+```
 2. What is the average total historical deposit counts and amounts for all customers?
-
+```
 WITH historical_deposits AS (
 SELECT customer_id,
 COUNT(customer_id) AS deposit_count,
@@ -87,9 +87,9 @@ GROUP BY customer_id
 SELECT ROUND(AVG(deposit_count)) AS avg_deposit_count,
 ROUND(AVG(total_amount)) AS avg_total_amount
 FROM historical_deposits;
-
+```
 3. For each month - how many Data Bank customers make more than 1 deposit and either 1 purchase or 1 withdrawal in a single month?
-
+```
 WITH monthly_transactions AS (
 SELECT customer_id,
 DATE_PART('month', txn_date) AS month,
@@ -105,9 +105,9 @@ FROM monthly_transactions
 WHERE deposit_count > 1 AND (purchase_count > 0 OR withdrawal_count > 0)
 GROUP BY month
 ORDER BY month;
-
+```
 4. What is the closing balance for each customer at the end of the month? Also show the change in balance each month in the same table output.
-
+```
 WITH
 monthend_series AS (
 SELECT customer_id,
@@ -132,13 +132,13 @@ COALESCE(emb.total_monthly_balance, 0) AS ending_balance,
 SUM (emb.total_monthly_balance) OVER (PARTITION BY ms.customer_id ORDER BY ms.month_of_end ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ending_balance
 FROM monthend_series ms
 LEFT JOIN ending_monthly_balances emb ON ms.customer_id = emb.customer_id AND cast(date_part('month',ms.month_of_end) as INT) = cast(date_part('month',emb.month) as int);
-
+```
 5. What is the percentage of customers who increase their closing balance by more than 5%?
-   C. Data Allocation Challenge
+  # C. Data Allocation Challenge
    To test out a few different hypotheses - the Data Bank team wants to run an experiment where different groups of customers would be allocated data using 3 different options:
 
 Option 1: data is allocated based off the amount of money at the end of the previous month
-
+```
 WITH
 ending_monthly_balances AS (
 SELECT customer_id,
@@ -162,9 +162,9 @@ ELSE  0
 END) / count(DISTINCT customer_id),2) AS total_monthly_balance_2
 FROM ending_monthly_balances
 WHERE rnk = 1;
-
+```
 Option 2: data is allocated on the average amount of money kept in the account in the previous 30 days
-
+```
 WITH array_balance AS (
 SELECT customer_id,
 array_agg(total_monthly_balance) AS balance_array
@@ -187,7 +187,7 @@ WHEN balance_array[1] > 0 and  (100.0 * balance_array[2] / balance_array[1]) > 1
 ELSE  0
 END) / count(DISTINCT customer_id),2) AS balance_array
 FROM array_balance;
-
+```
 Option 3: data is updated real-time
 For this multi-part challenge question - you have been requested to generate the following data elements to help the Data Bank team estimate how much data will need to be provisioned for each option:
 
