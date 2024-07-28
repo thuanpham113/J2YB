@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<flowgorithm fileversion="3.0">
+    <attributes>
+        <attribute name="name" value=""/>
+        <attribute name="authors" value="thuan"/>
+        <attribute name="about" value=""/>
+        <attribute name="saved" value="2024-07-28 10:35:28 am"/>
+        <attribute name="created" value="dGh1YW47VEhVQU5TLU1BQ0JPT0stOzIwMjQtMDctMjc7MTE6Mzk6NDQgYW07Mjk0OA=="/>
+        <attribute name="edited" value="dGh1YW47VEhVQU5TLU1BQ0JPT0stOzIwMjQtMDctMjg7MTA6MzU6MjggYW07NDszMDU3"/>
+    </attributes>
+    <function name="Main" type="None" variable="">
+        <parameters/>
+        <body>
+            <output expression="&quot;Roman numerals consist of the following characters:I = 1, V = 5, X = 10, L = 50, C = 100, D = 500, M = 1000&quot;" newline="True"/>
+            <output expression="&quot;The main rules when reading Roman numerals:&quot;" newline="True"/>
+            <output expression="&quot;1. The characters are placed from left to right in descending order (with some exceptions).&quot;" newline="True"/>
+            <output expression="&quot;2. If a character has a value less than the character immediately following it, the value of that character is subtracted. For example: IV = 4 (5 - 1).&quot;" newline="True"/>
+            <output expression="&quot;Enter Roman numerals: &quot;" newline="True"/>
+            <declare name="RomanNumber" type="String" array="False" size=""/>
+            <input variable="RomanNumber"/>
+            <declare name="Number" type="Integer" array="False" size=""/>
+            <assign variable="Number" expression="HandleRomanNumberToInt(RomanNumber)"/>
+            <output expression="&quot;Number Integer is &quot; &amp;Number" newline="True"/>
+        </body>
+    </function>
+    <function name="HandleRomanNumberToInt" type="Integer" variable="Number">
+        <parameters>
+            <parameter name="RomanNumber" type="String" array="False"/>
+        </parameters>
+        <body>
+            <declare name="Number, index, newNumber, oldNumber" type="Integer" array="False" size=""/>
+            <assign variable="Number" expression="0"/>
+            <assign variable="oldNumber" expression="0"/>
+            <for variable="index" start="Len(RomanNumber) - 1" end="0" direction="dec" step="1">
+                <if expression="Char(RomanNumber,index) = &quot;I&quot;">
+                    <then>
+                        <assign variable="newNumber" expression="1"/>
+                    </then>
+                    <else>
+                        <if expression="Char(RomanNumber,index) = &quot;V&quot;">
+                            <then>
+                                <assign variable="newNumber" expression="5"/>
+                            </then>
+                            <else>
+                                <if expression="Char(RomanNumber,index) = &quot;X&quot;">
+                                    <then>
+                                        <assign variable="newNumber" expression="5"/>
+                                    </then>
+                                    <else>
+                                        <if expression="Char(RomanNumber,index) = &quot;L&quot;">
+                                            <then>
+                                                <assign variable="newNumber" expression="50"/>
+                                            </then>
+                                            <else>
+                                                <if expression="Char(RomanNumber,index) = &quot;C&quot;">
+                                                    <then>
+                                                        <assign variable="newNumber" expression="100"/>
+                                                    </then>
+                                                    <else>
+                                                        <if expression="Char(RomanNumber,index) = &quot;D&quot;">
+                                                            <then>
+                                                                <assign variable="newNumber" expression="500"/>
+                                                            </then>
+                                                            <else>
+                                                                <if expression="Char(RomanNumber,index) = &quot;M&quot;">
+                                                                    <then>
+                                                                        <assign variable="newNumber" expression="100"/>
+                                                                    </then>
+                                                                    <else>
+                                                                        <output expression="&quot;Incorrect Number Entered&quot;" newline="True"/>
+                                                                        <breakpoint expression="" always="True"/>
+                                                                    </else>
+                                                                </if>
+                                                            </else>
+                                                        </if>
+                                                    </else>
+                                                </if>
+                                            </else>
+                                        </if>
+                                    </else>
+                                </if>
+                            </else>
+                        </if>
+                    </else>
+                </if>
+                <if expression="index &lt; Len(RomanNumber)- 1 &amp;&amp; newNumber &lt; oldNumber">
+                    <then>
+                        <assign variable="Number" expression="Number - newNumber"/>
+                    </then>
+                    <else>
+                        <assign variable="Number" expression="Number + newNumber"/>
+                    </else>
+                </if>
+                <assign variable="oldNumber" expression="newNumber"/>
+            </for>
+        </body>
+    </function>
+</flowgorithm>

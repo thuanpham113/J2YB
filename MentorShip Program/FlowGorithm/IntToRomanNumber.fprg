@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<flowgorithm fileversion="3.0">
+    <attributes>
+        <attribute name="name" value=""/>
+        <attribute name="authors" value="thuan"/>
+        <attribute name="about" value=""/>
+        <attribute name="saved" value="2024-07-28 10:35:06 am"/>
+        <attribute name="created" value="dGh1YW47VEhVQU5TLU1BQ0JPT0stOzIwMjQtMDctMjg7MDk6MjE6MDkgYW07Mjk0OA=="/>
+        <attribute name="edited" value="dGh1YW47VEhVQU5TLU1BQ0JPT0stOzIwMjQtMDctMjg7MTA6MzU6MDYgYW07NDszMDUz"/>
+    </attributes>
+    <function name="Main" type="None" variable="">
+        <parameters/>
+        <body>
+            <declare name="valueRomanNumber" type="Integer" array="True" size="13"/>
+            <declare name="CharRomanNumber" type="String" array="True" size="13"/>
+            <assign variable="valueRomanNumber[0]" expression="1000"/>
+            <assign variable="valueRomanNumber[1]" expression="900"/>
+            <assign variable="valueRomanNumber[2]" expression="500"/>
+            <assign variable="valueRomanNumber[3]" expression="400"/>
+            <assign variable="valueRomanNumber[4]" expression="100"/>
+            <assign variable="valueRomanNumber[5]" expression="90"/>
+            <assign variable="valueRomanNumber[6]" expression="50"/>
+            <assign variable="valueRomanNumber[7]" expression="40"/>
+            <assign variable="valueRomanNumber[8]" expression="10"/>
+            <assign variable="valueRomanNumber[9]" expression="9"/>
+            <assign variable="valueRomanNumber[10]" expression="5"/>
+            <assign variable="valueRomanNumber[11]" expression="4"/>
+            <assign variable="valueRomanNumber[12]" expression="1"/>
+            <assign variable="CharRomanNumber[0]" expression="&quot;M&quot;"/>
+            <assign variable="CharRomanNumber[1]" expression="&quot;CM&quot;"/>
+            <assign variable="CharRomanNumber[2]" expression="&quot;D&quot;"/>
+            <assign variable="CharRomanNumber[3]" expression="&quot;CD&quot;"/>
+            <assign variable="CharRomanNumber[4]" expression="&quot;C&quot;"/>
+            <assign variable="CharRomanNumber[5]" expression="&quot;XC&quot;"/>
+            <assign variable="CharRomanNumber[6]" expression="&quot;L&quot;"/>
+            <assign variable="CharRomanNumber[7]" expression="&quot;XL&quot;"/>
+            <assign variable="CharRomanNumber[8]" expression="&quot;X&quot;"/>
+            <assign variable="CharRomanNumber[9]" expression="&quot;IX&quot;"/>
+            <assign variable="CharRomanNumber[10]" expression="&quot;V&quot;"/>
+            <assign variable="CharRomanNumber[11]" expression="&quot;IV&quot;"/>
+            <assign variable="CharRomanNumber[12]" expression="&quot;I&quot;"/>
+            <declare name="Number, Num, index, indexNumber" type="Integer" array="False" size=""/>
+            <declare name="romanNumber" type="String" array="False" size=""/>
+            <output expression="&quot;Requirement to post: Input Integer output RomanNumber&quot;" newline="True"/>
+            <output expression="&quot;Enter number:&quot;" newline="True"/>
+            <input variable="Number"/>
+            <assign variable="indexNumber" expression="0"/>
+            <assign variable="romanNumber" expression="&quot;&quot;"/>
+            <while expression="Number &gt; 0">
+                <while expression="Number / valueRomanNumber[indexNumber]&gt;= 1">
+                    <assign variable="romanNumber" expression="romanNumber &amp; charRomanNumber[indexNumber]"/>
+                    <assign variable="number" expression="number - valueRomanNumber[indexNumber]"/>
+                </while>
+                <assign variable="indexNumber" expression="indexNumber + 1"/>
+            </while>
+            <output expression="&quot;Roman Number: &quot;&amp;romanNumber" newline="True"/>
+        </body>
+    </function>
+</flowgorithm>
