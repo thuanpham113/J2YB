@@ -12,7 +12,7 @@
 1. Clone repository này về máy của bạn:
 ```git clone https://github.com/thuanpham113/J2YB.git```
 1. Di chuyển vào thư mục dự án:
-```cd TreeCardPoker```
+```cd MentorShipProgram\ExamThreeCardPoker```
 1. Cài đặt các dependencies:
 ```npm install```
 
