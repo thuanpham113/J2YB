@@ -1,4 +1,3 @@
-# A. Pizza Metrics
 1. How many pizzas were ordered?
 ```
 SELECT COUNT(*) FROM customer_orders;
@@ -154,8 +153,8 @@ SELECT
 FROM runner_orders
 GROUP BY runner_id;
 ```
-# C. Ingredient Optimisation 
-1. What are the standard ingredients for each pizza ? 
+# C. Ingredient Optimisation
+1. What are the standard ingredients for each pizza ?
 ```
 WITH
     pizza_toppings_cte AS (
@@ -282,9 +281,9 @@ FROM
 5. Generate an alphabetically ordered comma separated ingredient list for each pizza order from the customer_orders table and add a 2x in front of any relevant ingredients
 For example: "Meat Lovers: 2xBacon, Beef, ... , Salami"
 ```
-SELECT co.order_id, 
-CASE 
-    WHEN pn.pizza_name = 'Meatlovers' THEN 'Meat Lovers' 
+SELECT co.order_id,
+CASE
+    WHEN pn.pizza_name = 'Meatlovers' THEN 'Meat Lovers'
     ELSE 'Vegetarian'
 END  || ': ' || (
         SELECT string_agg(ingredient_list, ', ') as ingredient_list
@@ -399,7 +398,7 @@ GROUP BY
 ```
 ```
 WITH pizza_toppings_cte AS (
-SELECT co.order_id, 
+SELECT co.order_id,
 string_to_table((
         SELECT string_agg(ingredient_list, ', ') as ingredient_list
         FROM (
@@ -576,7 +575,7 @@ SELECT SUM(
         to_number(
             REPLACE(ro.distance, 'km', ''),
             'S999D99'
-        ) * 0.30    
+        ) * 0.30
     ) as total_revenue
 FROM
     customer_orders co
